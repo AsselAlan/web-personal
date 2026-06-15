@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desarrollo de Software a Medida para Pymes</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e', // Verde WhatsApp
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        tech: {
+                            500: '#3b82f6', // Azul tecnológico limpio
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 8px;
+        }
+        .animate-spin-slow {
+            animation: spin 8s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+    <!-- ==================== NOTIFICACIONES FLOTANTES (TOASTS) ==================== -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] space-y-3 pointer-events-none"></div>
+
+    <!-- ==================== BOTÓN FLOTANTE: CONFIGURAR PLANTILLA ==================== -->
+    <div id="editor-toggle-container" class="fixed bottom-6 right-6 z-50">
+        <button onclick="openEditorModal()" class="flex items-center gap-2.5 bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/60 px-5 py-3.5 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 group">
+            <span class="relative flex h-3.5 w-3.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+            </span>
+            <svg class="w-5 h-5 text-emerald-400 animate-spin-slow group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="text-sm font-bold font-outfit tracking-wide">Configurar & Exportar Web</span>
+        </button>
+    </div>
+
+    <!-- ==================== MODAL DEL EDITOR (CONFIGURACIÓN) ==================== -->
+    <div id="editor-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] scale-95 transition-transform duration-300" id="editor-modal-card">
+            
+            <!-- Header Modal -->
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div>
+                    <h2 class="text-xl font-bold font-outfit text-emerald-400 flex items-center gap-2">
+                        <span>Personalizar mi Web</span>
+                        <span class="bg-emerald-500/10 text-emerald-400 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded">Activo</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Modifica tus datos y se actualizarán en tiempo real detrás del modal</p>
+                </div>
+                <button onclick="closeEditorModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Campos del Editor (Scrollable) -->
+            <div class="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1 text-slate-200">
+                <!-- Nombre y Título -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Tu Nombre Real</label>
+                        <input type="text" id="cfg-name" value="Tomás Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Especialidad / Rol</label>
+                        <input type="text" id="cfg-title" value="Especialista en Automatización para Pymes" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                </div>
+
+                <!-- Foto y Redes -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Enlace de tu Foto (URL directa)</label>
+                        <input type="text" id="cfg-avatar" value="" placeholder="Vacío para usar avatar SVG" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Tu WhatsApp (Sin símbolos, con código país)</label>
+                        <input type="text" id="cfg-whatsapp" value="5491123456789" placeholder="Ej: 5491123456789" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                </div>
+
+                <!-- Copy del Hero -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Título de Valor Principal (Hero)</label>
+                        <textarea id="cfg-hero-title" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">Lleva tu negocio a la nube de forma simple. Sin cuotas mensuales.</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Descripción Secundaria (Hero)</label>
+                        <textarea id="cfg-hero-desc" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500 transition">Diseño y desarrollo aplicaciones y sistemas de gestión a medida para Pymes. Optimiza tu tiempo, elimina el caos de los papeles y automatiza tareas complejas con Inteligencia Artificial. Todo mediante un pago único.</textarea>
+                    </div>
+                </div>
+
+                <!-- Métricas Caso de éxito -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Métrica Destacada (Caso de Éxito)</label>
+                        <input type="text" id="cfg-m1" value="Reducción del 40%" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-wider">Detalle Métrica</label>
+                        <input type="text" id="cfg-m1-desc" value="de tiempo en inventarios" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción en Footer Modal -->
+            <div class="p-6 border-t border-slate-800 bg-slate-950/50 space-y-3">
+                <button onclick="exportCleanCode()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-3.5 rounded-2xl text-sm font-bold tracking-wide shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                    Copiar Código Limpio (HTML)
+                </button>
+                <div class="text-[10px] text-center text-slate-500 font-medium">
+                    Al copiar el código, se descargará una versión 100% limpia de tu web (sin este editor ni botones de configuración). ¡Listo para subirlo gratis!
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== CONTENIDO DE LA WEB PRINCIPAL (PORTAFOLIO) ==================== -->
+    <main id="web-preview" class="min-h-screen relative bg-slate-50">
+        
+        <!-- Navbar de la Landing Page -->
+        <header class="sticky top-0 bg-white/85 backdrop-blur-md border-b border-slate-100 z-40 transition-all">
+            <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+                <!-- Logo / Identidad -->
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-md shadow-emerald-500/20">
+                        <span id="logo-letter">T</span>
+                    </div>
+                    <div>
+                        <span id="nav-brand-name" class="font-outfit font-extrabold text-slate-900 tracking-tight block text-base md:text-lg leading-none mb-1">Tomás Silva</span>
+                        <span id="nav-brand-sub" class="text-[9px] uppercase font-bold text-slate-400 tracking-wider block leading-none">Soluciones de software</span>
+                    </div>
+                </div>
+
+                <!-- Enlaces rápidos -->
+                <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+                    <a href="#problema" class="hover:text-slate-900 transition">El Dolor</a>
+                    <a href="#solucion" class="hover:text-slate-900 transition">Los 3 Pilares</a>
+                    <a href="#caso" class="hover:text-slate-900 transition">Caso Real</a>
+                    <a href="#proceso" class="hover:text-slate-900 transition">El Proceso</a>
+                </nav>
+
+                <!-- CTA Principal -->
+                <div>
+                    <a href="#contacto" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs md:text-sm px-4.5 py-2.5 rounded-xl shadow-lg transition">
+                        Diagnóstico Gratis
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- 1. SECCIÓN HÉROE (HERO SECTION) -->
+        <section class="relative pt-12 pb-20 md:py-24 overflow-hidden border-b border-slate-100 bg-gradient-to-b from-slate-50 via-slate-50 to-white">
+            
+            <!-- Elementos decorativos de fondo -->
+            <div class="absolute inset-0 z-0 opacity-40 pointer-events-none">
+                <div class="absolute top-1/4 right-0 w-96 h-96 bg-emerald-200/50 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-10 left-1/4 w-72 h-72 bg-blue-200/40 rounded-full blur-3xl"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+                
+                <!-- Copywriter e Intro de Valor -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 text-xs font-bold px-3.5 py-1.5 rounded-full">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Propuesta de valor para Pymes y Comercios
+                    </div>
+                    
+                    <h1 id="hero-title" class="text-3xl md:text-5xl font-outfit font-extrabold text-slate-900 leading-tight tracking-tight">
+                        Lleva tu negocio a la nube de forma simple. Sin cuotas mensuales.
+                    </h1>
+                    
+                    <p id="hero-desc" class="text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                        Diseño y desarrollo aplicaciones y sistemas de gestión a medida para Pymes. Optimiza tu tiempo, elimina el caos de los papeles y automatiza tareas complejas con Inteligencia Artificial. Todo mediante un pago único.
+                    </p>
+
+                    <!-- Highlights Rápidos -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-sm text-slate-700 pt-2">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Sin licencias de por vida</strong> (Pago único)</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Infraestructura Base Gratis</strong> (Supabase)</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Inteligencia Artificial</strong> Integrada y útil</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span><strong>Soporte Directo</strong> de persona a persona</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción directos -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <a id="btn-cta-whatsapp" href="https://wa.me/5491123456789?text=Hola,%20vi%20tu%20web%20y%20me%20gustaria%20saber%20mas%20sobre%20el%20desarrollo%20de%20software%20a%20medida" target="_blank" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-4 rounded-2xl shadow-xl shadow-emerald-500/20 transition-all hover:-translate-y-0.5">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.731-1.456L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.852.002-2.63-1.023-5.101-2.883-6.963C16.593 1.928 14.122.9 11.487.9c-5.44 0-9.866 4.418-9.87 9.851 0 1.748.458 3.454 1.328 4.975l-.995 3.63 3.72-.975zm13.11-6.19c-.31-.156-1.838-.907-2.124-1.01-.284-.105-.49-.156-.697.156-.206.31-.8.1.1-.1.206-.412.31-.156.618.31.258.155.31.103.515-.206.206-.31 1.03-1.134 1.185-1.29.155-.154.31-.206.618-.05 1.547.773 1.96.98 2.217 1.11.257.128.43.334.495.44.1.18.1.72-.1 1.133s-.928 1.134-1.29 1.186c-.36.052-.824.08-1.545-.206-2.583-1.03-4.24-3.71-4.37-3.885-.13-.175-1.03-1.37-1.03-2.613s.645-1.854.876-2.11c.23-.258.515-.31.696-.31.18 0 .36 0 .515.01.18.01.412-.082.645-.31.23-.23.875-.875.875-2.112s-.31-1.442-.464-1.75c-.155-.31-.412-.258-.62-.258s-.412.01-.618.01c-.206.01-.515.082-.773.36-.257.257-1.03 1.03-1.03 2.524s1.082 2.937 1.237 3.143c.154.206 2.13 3.25 5.16 4.56.72.31 1.28.496 1.72.637.724.23 1.382.197 1.9.12.58-.087 1.838-.75 2.095-1.44.258-.69.258-1.288.18-1.412-.077-.124-.283-.206-.593-.362z"/></svg>
+                            Consultar por WhatsApp
+                        </a>
+                        <a href="#contacto" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold px-6 py-4 rounded-2xl shadow-sm transition-all hover:border-slate-300">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Reservar Diagnóstico Gratis
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Rostro y Credibilidad -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    <div class="relative w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden bg-slate-200 shadow-2xl border-4 border-white">
+                        <!-- Avatar de backup por si el usuario no tiene cargada foto propia -->
+                        <div id="default-avatar" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                            <svg class="w-16 h-16 text-emerald-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            <span class="font-outfit font-extrabold text-white text-lg block leading-tight mb-1" id="badge-name-svg">Tomás Silva</span>
+                            <span class="text-[10px] text-slate-400 max-w-[180px] leading-snug">Personaliza tu foto ingresando una URL en el configurador flotante</span>
+                        </div>
+                        <img id="user-avatar" src="" class="absolute inset-0 w-full h-full object-cover hidden" alt="Foto de marca personal">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span id="label-name-badge" class="font-outfit font-bold text-slate-900 text-lg block">Tomás Silva</span>
+                        <span id="label-speciality-badge" class="text-xs font-semibold text-emerald-600">Especialista en Automatización para Pymes</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SECCIÓN DE EMPATÍA ("EL DOLOR DEL CLIENTE") -->
+        <section id="problema" class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-4">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">¿Te sientes identificado?</span>
+                <h2 class="text-2xl md:text-4xl font-outfit font-extrabold text-slate-900">¿Tu negocio sigue atrapado en la gestión del pasado?</h2>
+                <p class="text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
+                    Sé lo frustrante que es administrar un comercio utilizando cuadernos que se pierden, hojas de cálculo de Excel infinitas que fallan al primer descuido, o intentando adaptarte a sistemas genéricos que resultan caros e incomprensibles.
+                </p>
+            </div>
+
+            <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+                <!-- Tarjeta del Dolor -->
+                <div class="bg-red-50/50 border border-red-100 rounded-3xl p-8 space-y-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-red-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-red-900 font-outfit">La Gestión Tradicional</h3>
+                    <ul class="space-y-3 text-slate-600 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-500 font-bold">✕</span>
+                            <span>Exceles rotos y registros duplicados que desajustan el stock real.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-500 font-bold">✕</span>
+                            <span>Horas perdidas cada fin de semana calculando márgenes e inventario a mano.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-500 font-bold">✕</span>
+                            <span>Plataformas complicadas con cobros mensuales recurrentes que nunca amortizas.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tarjeta de la Tranquilidad -->
+                <div class="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8 space-y-4">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-emerald-900 font-outfit">La Solución Integrada</h3>
+                    <ul class="space-y-3 text-slate-600 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-bold">✓</span>
+                            <span>Una aplicación hecha 100% a medida, pensada para que cualquiera la entienda.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-bold">✓</span>
+                            <span>Toda la información del negocio segura en la nube y accesible desde tu celular.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 font-bold">✓</span>
+                            <span><strong>Ahorro garantizado de hasta 2 horas diarias</strong> en tareas administrativas.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. LOS 3 PILARES DE VALOR -->
+        <section id="solucion" class="py-20 bg-slate-50 border-y border-slate-100">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-4 mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Cómo trabajamos</span>
+                <h2 class="text-2xl md:text-4xl font-outfit font-extrabold text-slate-900">Mi Compromiso contigo: Transparencia Absoluta</h2>
+                <p class="text-slate-600 max-w-xl mx-auto">No vendo promesas vacías. Creo herramientas sencillas construidas bajo tres principios inquebrantables.</p>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Pilar 1 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden group hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-xl font-outfit">1</div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">Aplicaciones Sencillas</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Diseños claros y fluidos para que tú y tu equipo trabajen rápido, sin funciones inservibles ni opciones confusas que solo ralentizan el flujo laboral diario.
+                    </p>
+                </div>
+
+                <!-- Pilar 2 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden group hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-xl font-outfit">2</div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">Cero Mensualidades Fijas</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Utilizo infraestructura en la nube optimizada. Configuro tu base de datos y alojamiento sin que tengas que abonar suscripciones recurrentes de mantenimiento básico.
+                    </p>
+                </div>
+
+                <!-- Pilar 3 -->
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden group hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center font-bold text-xl font-outfit">3</div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">IA Práctica y Accesible</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        No es ciencia ficción: integramos procesos de IA útiles. Lectura automatizada de comprobantes de compras, pronóstico de ventas y reportes escritos al instante.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. EL ANCLA DE CONFIANZA - CASO DE ÉXITO CON DEMO INTERACTIVA -->
+        <section id="caso" class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <!-- Detalles del Caso de Éxito -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Mira mi trabajo en acción</span>
+                        <h2 class="text-2xl md:text-4xl font-outfit font-extrabold text-slate-900 leading-tight">
+                            Caso de Éxito: Gestión Inteligente de Panificadora
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                            Transformé un comercio de panadería familiar que controlaba sus lotes de harina y ventas en libretas manuscritas, en una plataforma centralizada en la nube con lectura de facturas integrada.
+                        </p>
+
+                        <!-- Métricas del Caso (Actualizables mediante editor) -->
+                        <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="text-3xl font-extrabold font-outfit text-emerald-500 shrink-0" id="preview-m1">
+                                    Reducción del 40%
+                                </div>
+                                <div class="text-xs text-slate-500 font-medium leading-snug" id="preview-m1-desc">
+                                    de tiempo en inventarios
+                                </div>
+                            </div>
+                            <div class="h-px bg-slate-200"></div>
+                            <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                                <span class="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <span>Sistema actualizable en tiempo real desde celular o laptop.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INTERACTIVO: SIMULADOR DE APLICACIÓN (MOCKUP INTERACTIVO) -->
+                    <div class="lg:col-span-7 bg-slate-900 rounded-3xl p-1 shadow-2xl overflow-hidden border border-slate-800">
+                        
+                        <!-- Barra Superior del Sistema Panadería -->
+                        <div class="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                <span class="text-[10px] text-slate-400 font-mono ml-2">AppPanaderia v2.1 // Panel Directo</span>
+                            </div>
+                            <span class="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-mono">Simulador Online</span>
+                        </div>
+
+                        <!-- Dashboard de la Demo -->
+                        <div class="p-6 space-y-6 text-slate-300">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Control de Inventario y Ventas</h4>
+                                    <p class="text-[11px] text-slate-500">Prueba interactuando con los botones de abajo:</p>
+                                </div>
+                                <span class="text-xs font-semibold bg-emerald-500/15 text-emerald-400 px-2.5 py-1 rounded-full">Panificadora "El Sol"</span>
+                            </div>
+
+                            <!-- Grid de Stock de Productos -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Sacos de Harina</span>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <span id="stock-harina" class="text-2xl font-bold font-outfit text-white">45</span>
+                                        <div class="flex gap-1">
+                                            <button onclick="changeStock('harina', -1)" class="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center font-bold text-xs transition">-</button>
+                                            <button onclick="changeStock('harina', 1)" class="w-6 h-6 bg-emerald-600 hover:bg-emerald-500 rounded flex items-center justify-center font-bold text-xs transition">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Cajas de Manteca</span>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <span id="stock-manteca" class="text-2xl font-bold font-outfit text-white">12</span>
+                                        <div class="flex gap-1">
+                                            <button onclick="changeStock('manteca', -1)" class="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center font-bold text-xs transition">-</button>
+                                            <button onclick="changeStock('manteca', 1)" class="w-6 h-6 bg-emerald-600 hover:bg-emerald-500 rounded flex items-center justify-center font-bold text-xs transition">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/50">
+                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Docenas Facturas</span>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <span id="stock-facturas" class="text-2xl font-bold font-outfit text-white">120</span>
+                                        <div class="flex gap-1">
+                                            <button onclick="changeStock('facturas', -1)" class="w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center font-bold text-xs transition">-</button>
+                                            <button onclick="changeStock('facturas', 1)" class="w-6 h-6 bg-emerald-600 hover:bg-emerald-500 rounded flex items-center justify-center font-bold text-xs transition">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acciones Especiales de Inteligencia Artificial (IA) -->
+                            <div class="bg-slate-950 p-4 rounded-2xl border border-emerald-500/20 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                                        <span class="text-xs font-bold font-outfit text-emerald-400 tracking-wider uppercase">Módulos Inteligentes de IA</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500">Impulsado por Gemini</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- Botón Lector IA -->
+                                    <button onclick="runReceiptScanner()" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 p-3 rounded-xl text-left transition flex items-center gap-3 group">
+                                        <div class="w-8 h-8 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-bold text-white block">Escanear Ticket Proveedor</span>
+                                            <span class="text-[9px] text-slate-400 block">IA lee el recibo y carga el stock</span>
+                                        </div>
+                                    </button>
+
+                                    <!-- Botón Analista Financiero -->
+                                    <button onclick="runAIAudit()" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 p-3 rounded-xl text-left transition flex items-center gap-3 group">
+                                        <div class="w-8 h-8 bg-blue-500/10 text-blue-400 rounded-lg flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-bold text-white block">Generar Reporte del Día</span>
+                                            <span class="text-[9px] text-slate-400 block">IA resume las finanzas al instante</span>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Consola de Salida del Simulador IA -->
+                                <div class="bg-slate-900 rounded-xl p-3 border border-slate-800 font-mono text-[10px] space-y-1.5 min-h-[70px]">
+                                    <span class="text-slate-500">// Consola de salida de Inteligencia Artificial:</span>
+                                    <div id="ai-console-output" class="text-emerald-400 leading-relaxed">
+                                        Haz clic en uno de los botones para iniciar un análisis de Inteligencia Artificial en vivo...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. EL PROCESO TRANSPARENTE EN 3 PASOS -->
+        <section id="proceso" class="py-20 bg-slate-50 border-t border-slate-100">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-4 mb-16">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Paso a paso</span>
+                <h2 class="text-2xl md:text-4xl font-outfit font-extrabold text-slate-900">¿Cómo creamos tu aplicación ideal?</h2>
+                <p class="text-slate-600 max-w-xl mx-auto">No necesitas saber de informática. He simplificado todo el trayecto en tres etapas claras libres de estrés.</p>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                <!-- Conexión visual decorativa entre pasos (Solo pantallas grandes) -->
+                <div class="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-slate-200 z-0"></div>
+
+                <!-- Paso 1 -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 space-y-4 relative z-10 hover:shadow-lg transition duration-300">
+                    <div class="w-12 h-12 bg-emerald-500 text-slate-950 font-extrabold text-lg rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 font-outfit">
+                        01
+                    </div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">1. Diagnóstico de 15 min</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Agendamos una breve videollamada para estudiar cómo opera tu negocio y detectar en qué tareas diarias estás perdiendo tiempo o rentabilidad.
+                    </p>
+                    <span class="inline-block text-[11px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-1 rounded-lg uppercase tracking-wider font-sans">100% Gratis y sin compromiso</span>
+                </div>
+
+                <!-- Paso 2 -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 space-y-4 relative z-10 hover:shadow-lg transition duration-300">
+                    <div class="w-12 h-12 bg-slate-900 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
+                        02
+                    </div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">2. Desarrollo Directo</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Construyo tu plataforma ajustada al 100% a tus lógicas comerciales reales. Sin opciones extrañas y lista para consultarla desde cualquier celular o notebook.
+                    </p>
+                </div>
+
+                <!-- Paso 3 -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-100 space-y-4 relative z-10 hover:shadow-lg transition duration-300">
+                    <div class="w-12 h-12 bg-slate-900 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
+                        03
+                    </div>
+                    <h3 class="text-lg font-bold font-outfit text-slate-900">3. Lanzamiento y Entrega</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Habilitamos el software en la nube bajo tu dominio propio. Recibes el producto final bajo un esquema de pago único, sin preocuparte por costos de licencias mensuales.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. CIERRE Y LLAMADO A LA ACCIÓN (FORMULARIO Y CONTACTO) -->
+        <section id="contacto" class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-6 text-center space-y-4 mb-12">
+                <span class="text-xs font-extrabold uppercase tracking-widest text-emerald-600">Digitaliza tu negocio</span>
+                <h2 class="text-3xl md:text-4xl font-outfit font-extrabold text-slate-900">¿Charlamos 15 minutos para analizar tu negocio?</h2>
+                <p class="text-slate-600 max-w-xl mx-auto">No te venderé ningún software genérico que no te sirva. Conversemos, estudiemos tus procesos y te daré un plan práctico para automatizarlos.</p>
+            </div>
+
+            <div class="max-w-3xl mx-auto px-6 bg-slate-900 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
+                
+                <!-- Fondo decorativo del contenedor -->
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold font-outfit text-emerald-400">¿Qué analizaremos en la llamada?</h3>
+                        <ul class="space-y-3 text-xs text-slate-300">
+                            <li class="flex items-center gap-2.5">
+                                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Qué tareas te quitan más de una hora al día.</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Cómo automatizar tus inventarios y stock de mercadería.</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Si es factible incorporar un motor de Inteligencia Artificial.</span>
+                            </li>
+                        </ul>
+                        
+                        <div class="pt-4 border-t border-slate-800">
+                            <p class="text-xs text-slate-400 font-medium mb-1">¿Prefieres un chat directo?</p>
+                            <a id="btn-cta-whatsapp-footer" href="https://wa.me/5491123456789?text=Hola,%20vi%20tu%20web%20y%20me%20gustaria%20saber%20mas%20sobre%20el%20desarrollo%20de%20software%20a%20medida" target="_blank" class="inline-flex items-center gap-2 text-emerald-400 font-bold text-sm hover:underline">
+                                Háblame directo por WhatsApp
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- AGENDADOR DE CITAS INTERACTIVO (SIMULADO) -->
+                    <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700/50">
+                        <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider block mb-3 text-center">Agenda tu Diagnóstico</span>
+                        
+                        <div id="booking-step-1" class="space-y-4">
+                            <label class="block text-xs font-semibold text-slate-300">Selecciona un día para esta semana:</label>
+                            <!-- Grid de Días -->
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <button onclick="selectDay(this, 'Lunes')" class="day-btn bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg transition-all border border-transparent">
+                                    <div class="font-bold">Lun</div>
+                                    <div class="text-[9px] text-slate-450">9:00 - 15:00</div>
+                                </button>
+                                <button onclick="selectDay(this, 'Miércoles')" class="day-btn bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg transition-all border border-transparent">
+                                    <div class="font-bold">Mié</div>
+                                    <div class="text-[9px] text-slate-450">10:00 - 18:00</div>
+                                </button>
+                                <button onclick="selectDay(this, 'Viernes')" class="day-btn bg-slate-700 hover:bg-slate-650 p-2.5 rounded-lg transition-all border border-transparent">
+                                    <div class="font-bold">Vie</div>
+                                    <div class="text-[9px] text-slate-450">09:00 - 14:00</div>
+                                </button>
+                            </div>
+
+                            <div id="time-selection" class="space-y-2 hidden">
+                                <label class="block text-xs font-semibold text-slate-300">Selecciona un horario:</label>
+                                <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                                    <button onclick="selectTime(this, '10:00 AM')" class="time-btn bg-slate-750 hover:bg-slate-700 p-2 rounded-lg border border-transparent transition">10:00 AM</button>
+                                    <button onclick="selectTime(this, '11:30 AM')" class="time-btn bg-slate-750 hover:bg-slate-700 p-2 rounded-lg border border-transparent transition">11:30 AM</button>
+                                    <button onclick="selectTime(this, '02:00 PM')" class="time-btn bg-slate-750 hover:bg-slate-700 p-2 rounded-lg border border-transparent transition">02:00 PM</button>
+                                    <button onclick="selectTime(this, '04:30 PM')" class="time-btn bg-slate-750 hover:bg-slate-700 p-2 rounded-lg border border-transparent transition">04:30 PM</button>
+                                </div>
+                            </div>
+
+                            <button id="booking-submit-btn" disabled onclick="submitBooking()" class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:opacity-50 text-slate-950 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">
+                                Confirmar Diagnóstico
+                            </button>
+                        </div>
+
+                        <!-- Estado Confirmado -->
+                        <div id="booking-success" class="hidden text-center py-6 space-y-4">
+                            <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl">✓</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">¡Pre-reserva Exitosa!</h4>
+                                <p class="text-[11px] text-slate-450 mt-1">Se abrirá WhatsApp para enviarme los detalles y confirmar la cita de 15 minutos.</p>
+                            </div>
+                            <button onclick="resetBooking()" class="text-[10px] text-slate-400 hover:underline">Cambiar Horario</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Corporativo Minimalista -->
+        <footer class="bg-slate-50 border-t border-slate-100 py-12 text-slate-400 text-xs">
+            <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span id="footer-brand-name" class="font-outfit font-extrabold text-slate-700 text-sm">Tomás Silva</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-450">© 2026</span>
+                </div>
+                <div class="flex gap-6 text-slate-500">
+                    <span class="hover:text-slate-700 transition cursor-default">Transparencia Total</span>
+                    <span class="hover:text-slate-700 transition cursor-default">Soporte Continuo</span>
+                    <span class="hover:text-slate-700 transition cursor-default">Software a Medida</span>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- ==================== LOGICA INTERACTIVA DEL SITIO ==================== -->
+    <script>
+        // --- SISTEMA INTERNO DE TOASTS (NOTIFICACIONES) ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-xl border text-sm transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto max-w-sm ${
+                type === 'success' 
+                ? 'bg-slate-900 text-white border-slate-800' 
+                : 'bg-red-950 text-red-200 border-red-900'
+            }`;
+            
+            toast.innerHTML = `
+                <span class="${type === 'success' ? 'text-emerald-400' : 'text-red-400'} font-bold">●</span>
+                <span class="font-semibold text-xs font-sans">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Forzar reflow para animación
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            // Eliminar toast después de 4 segundos
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // --- MANEJO DEL MODAL DEL EDITOR ---
+        function openEditorModal() {
+            const modal = document.getElementById('editor-modal');
+            const card = document.getElementById('editor-modal-card');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+            }, 50);
+        }
+
+        function closeEditorModal() {
+            const modal = document.getElementById('editor-modal');
+            const card = document.getElementById('editor-modal-card');
+            modal.classList.add('opacity-0');
+            card.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Cierra modal al hacer click fuera del contenedor principal
+        document.getElementById('editor-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditorModal();
+            }
+        });
+
+        // --- ACTUALIZADOR DE CONTENIDO EN TIEMPO REAL ---
+        const cfgName = document.getElementById('cfg-name');
+        const cfgTitle = document.getElementById('cfg-title');
+        const cfgAvatar = document.getElementById('cfg-avatar');
+        const cfgWhatsapp = document.getElementById('cfg-whatsapp');
+        const cfgHeroTitle = document.getElementById('cfg-hero-title');
+        const cfgHeroDesc = document.getElementById('cfg-hero-desc');
+        const cfgM1 = document.getElementById('cfg-m1');
+        const cfgM1Desc = document.getElementById('cfg-m1-desc');
+
+        function updateLandingView() {
+            const name = cfgName.value.trim() || 'Tomás Silva';
+            document.getElementById('nav-brand-name').innerText = name;
+            document.getElementById('footer-brand-name').innerText = name;
+            document.getElementById('label-name-badge').innerText = name;
+            document.getElementById('badge-name-svg').innerText = name;
+            document.getElementById('logo-letter').innerText = name.charAt(0).toUpperCase();
+
+            const spec = cfgTitle.value.trim() || 'Especialista en Automatización para Pymes';
+            document.getElementById('nav-brand-sub').innerText = spec;
+            document.getElementById('label-speciality-badge').innerText = spec;
+
+            // Foto de perfil
+            const avatarUrl = cfgAvatar.value.trim();
+            const avatarImg = document.getElementById('user-avatar');
+            const defaultAvatar = document.getElementById('default-avatar');
+            if (avatarUrl) {
+                avatarImg.src = avatarUrl;
+                avatarImg.classList.remove('hidden');
+                defaultAvatar.classList.add('hidden');
+            } else {
+                avatarImg.classList.add('hidden');
+                defaultAvatar.classList.remove('hidden');
+            }
+
+            // Hero Copy
+            document.getElementById('hero-title').innerText = cfgHeroTitle.value;
+            document.getElementById('hero-desc').innerText = cfgHeroDesc.value;
+
+            // Métricas
+            document.getElementById('preview-m1').innerText = cfgM1.value;
+            document.getElementById('preview-m1-desc').innerText = cfgM1Desc.value;
+
+            // Enlaces WhatsApp
+            const phone = cfgWhatsapp.value.trim() || '5491123456789';
+            const encodedText = encodeURIComponent(`Hola ${name}, vi tu web y me gustaría agendar una llamada de diagnóstico gratuita para mi negocio.`);
+            const waLink = `https://wa.me/${phone}?text=${encodedText}`;
+            
+            document.getElementById('btn-cta-whatsapp').href = waLink;
+            document.getElementById('btn-cta-whatsapp-footer').href = waLink;
+        }
+
+        [cfgName, cfgTitle, cfgAvatar, cfgWhatsapp, cfgHeroTitle, cfgHeroDesc, cfgM1, cfgM1Desc].forEach(input => {
+            input.addEventListener('input', updateLandingView);
+        });
+
+        // Forzar primera carga
+        updateLandingView();
+
+        // --- EXPORTADOR DE CÓDIGO LIMPIO (Saca el Modal y Botón Flotante) ---
+        function exportCleanCode() {
+            // Creamos una estructura temporal en base a una clonación profunda
+            const tempContainer = document.createElement('div');
+            tempContainer.innerHTML = document.documentElement.outerHTML;
+
+            // Eliminamos la interfaz de configuración del DOM clonado
+            const modalEl = tempContainer.querySelector('#editor-modal');
+            const buttonEl = tempContainer.querySelector('#editor-toggle-container');
+            const toastEl = tempContainer.querySelector('#toast-container');
+            
+            if (modalEl) modalEl.remove();
+            if (buttonEl) buttonEl.remove();
+            if (toastEl) toastEl.remove();
+
+            // Reconstruimos el código limpio final
+            const cleanOutputHTML = `<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+${tempContainer.querySelector('head').outerHTML}
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+    ${tempContainer.querySelector('main').outerHTML}
+    
+    <!-- Lógica de Simulación Interactiva y Agendador de la Landing Page -->
+    <script>
+        // Simulador de Inventario
+        function changeStock(prod, amt) {
+            const elem = document.getElementById('stock-' + prod);
+            let val = parseInt(elem.innerText) + amt;
+            if(val < 0) val = 0;
+            elem.innerText = val;
+        }
+
+        // Escáner de Facturas con IA
+        function runReceiptScanner() {
+            const out = document.getElementById('ai-console-output');
+            out.innerHTML = '<span class="text-yellow-400">Iniciando cámara...</span>\\n🔍 Analizando imagen del recibo de harina de trigo...';
+            setTimeout(() => {
+                out.innerHTML += '\\n🤖 Extraídos datos con IA:\\n - <span class="text-white">Harina de Trigo: +10 sacos</span>\\n - <span class="text-white">Manteca: +5 cajas</span>';
+                document.getElementById('stock-harina').innerText = parseInt(document.getElementById('stock-harina').innerText) + 10;
+                document.getElementById('stock-manteca').innerText = parseInt(document.getElementById('stock-manteca').innerText) + 5;
+                out.innerHTML += '\\n✅ Inventario sincronizado en tiempo real en la nube del negocio.';
+            }, 1800);
+        }
+
+        // Generación de Reportes con IA
+        function runAIAudit() {
+            const out = document.getElementById('ai-console-output');
+            out.innerHTML = '<span class="text-yellow-400">Compilando datos de inventario diario...</span>';
+            setTimeout(() => {
+                out.innerHTML = '🤖 <span class="text-white">Análisis de IA:</span>\\n"Hoy registraste una venta de Facturas un 15% superior al promedio habitual. El stock de Harina está bajo (45 sacos). Sugiero reponer 20 sacos antes de mañana para mantener el flujo de producción sin paros."';
+            }, 1200);
+        }
+
+        // Sistema de Calendario Interactivo
+        let selectedDayStr = "";
+        let selectedTimeStr = "";
+
+        function selectDay(btn, day) {
+            document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            btn.classList.add('border-emerald-500', 'bg-slate-800/85');
+            selectedDayStr = day;
+            
+            document.getElementById('time-selection').classList.remove('hidden');
+            validateBooking();
+        }
+
+        function selectTime(btn, time) {
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            btn.classList.add('border-emerald-500', 'bg-slate-800/85');
+            selectedTimeStr = time;
+            
+            validateBooking();
+        }
+
+        function validateBooking() {
+            if (selectedDayStr && selectedTimeStr) {
+                document.getElementById('booking-submit-btn').removeAttribute('disabled');
+            }
+        }
+
+        function submitBooking() {
+            document.getElementById('booking-step-1').classList.add('hidden');
+            document.getElementById('booking-success').classList.remove('hidden');
+            
+            const name = "${cfgName.value.trim() || 'Tomás Silva'}";
+            const text = encodeURIComponent(\`Hola \${name}! Me gustaría confirmar mi diagnóstico gratuito de 15 minutos para mi negocio. Seleccioné el día \${selectedDayStr} a las \${selectedTimeStr}.\`);
+            const phone = "${cfgWhatsapp.value.trim() || '5491123456789'}";
+            
+            setTimeout(() => {
+                window.open('https://wa.me/' + phone + '?text=' + text, '_blank');
+            }, 1500);
+        }
+
+        function resetBooking() {
+            document.getElementById('booking-step-1').classList.remove('hidden');
+            document.getElementById('booking-success').classList.add('hidden');
+            document.getElementById('booking-submit-btn').setAttribute('disabled', 'true');
+            selectedDayStr = "";
+            selectedTimeStr = "";
+            document.querySelectorAll('.day-btn, .time-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            document.getElementById('time-selection').classList.add('hidden');
+        }
+    <\/script>
+</body>
+</html>`;
+
+            // Copiado al Portapapeles
+            const tempArea = document.createElement("textarea");
+            tempArea.value = cleanOutputHTML;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            try {
+                document.execCommand("copy");
+                closeEditorModal();
+                showToast("¡Código limpio copiado con éxito al portapapeles! Listo para tu hosting.");
+            } catch (err) {
+                showToast("No pudimos copiar automáticamente. Por favor copia manualmente.", "error");
+            }
+            document.body.removeChild(tempArea);
+        }
+
+
+        // --- SIMULACIONES INTERACTIVAS ---
+        function changeStock(prod, amt) {
+            const elem = document.getElementById('stock-' + prod);
+            let val = parseInt(elem.innerText) + amt;
+            if(val < 0) val = 0;
+            elem.innerText = val;
+        }
+
+        function runReceiptScanner() {
+            const out = document.getElementById('ai-console-output');
+            out.innerHTML = '<span class="text-yellow-400">Iniciando cámara...</span><br>🔍 Analizando imagen del recibo de harina de trigo...';
+            setTimeout(() => {
+                out.innerHTML += '<br>🤖 Extraídos datos con IA:<br> - <span class="text-white">Harina de Trigo: +10 sacos</span><br> - <span class="text-white">Manteca: +5 cajas</span>';
+                document.getElementById('stock-harina').innerText = parseInt(document.getElementById('stock-harina').innerText) + 10;
+                document.getElementById('stock-manteca').innerText = parseInt(document.getElementById('stock-manteca').innerText) + 5;
+                out.innerHTML += '<br>✅ Inventario sincronizado en tiempo real en la nube del negocio.';
+            }, 1800);
+        }
+
+        function runAIAudit() {
+            const out = document.getElementById('ai-console-output');
+            out.innerHTML = '<span class="text-yellow-400">Compilando datos de inventario diario...</span>';
+            setTimeout(() => {
+                out.innerHTML = '🤖 <span class="text-white">Análisis de IA:</span><br>"Hoy registraste una venta de Facturas un 15% superior al promedio habitual. El stock de Harina está bajo (45 sacos). Sugiero reponer 20 sacos antes de mañana para mantener el flujo de producción sin paros."';
+            }, 1200);
+        }
+
+        // --- SISTEMA DE RESERVAS DE CALENDARIO ---
+        let selectedDayStr = "";
+        let selectedTimeStr = "";
+
+        function selectDay(btn, day) {
+            document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            btn.classList.add('border-emerald-500', 'bg-slate-800/85');
+            selectedDayStr = day;
+            
+            document.getElementById('time-selection').classList.remove('hidden');
+            validateBooking();
+        }
+
+        function selectTime(btn, time) {
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            btn.classList.add('border-emerald-500', 'bg-slate-800/85');
+            selectedTimeStr = time;
+            
+            validateBooking();
+        }
+
+        function validateBooking() {
+            if (selectedDayStr && selectedTimeStr) {
+                document.getElementById('booking-submit-btn').removeAttribute('disabled');
+            }
+        }
+
+        function submitBooking() {
+            document.getElementById('booking-step-1').classList.add('hidden');
+            document.getElementById('booking-success').classList.remove('hidden');
+            
+            const name = cfgName.value.trim() || 'Tomás Silva';
+            const text = encodeURIComponent(`Hola ${name}! Me gustaría confirmar mi diagnóstico gratuito de 15 minutos para mi negocio. Seleccioné el día ${selectedDayStr} a las ${selectedTimeStr}.`);
+            const phone = cfgWhatsapp.value.trim() || '5491123456789';
+            
+            setTimeout(() => {
+                window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+            }, 1500);
+        }
+
+        function resetBooking() {
+            document.getElementById('booking-step-1').classList.remove('hidden');
+            document.getElementById('booking-success').classList.add('hidden');
+            document.getElementById('booking-submit-btn').setAttribute('disabled', 'true');
+            selectedDayStr = "";
+            selectedTimeStr = "";
+            document.querySelectorAll('.day-btn, .time-btn').forEach(b => b.classList.remove('border-emerald-500', 'bg-slate-800/85'));
+            document.getElementById('time-selection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
