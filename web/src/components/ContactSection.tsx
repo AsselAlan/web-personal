@@ -13,7 +13,7 @@ const ContactSection = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
   };
 
   return (
@@ -33,7 +33,7 @@ const ContactSection = () => {
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.5, 0.3]
             }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" as const }}
             className="absolute -top-32 -right-32 w-96 h-96 bg-brand-violet_glossy rounded-full blur-[130px] pointer-events-none"
           />
 

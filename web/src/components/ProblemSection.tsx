@@ -13,7 +13,7 @@ const ProblemSection = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
   };
 
   return (
@@ -99,7 +99,7 @@ const ProblemSection = () => {
                 scale: [1, 1.2, 1],
                 opacity: [0.1, 0.2, 0.1]
               }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" as const }}
               className="absolute -top-20 -right-20 w-64 h-64 bg-brand-violet rounded-full blur-[100px] pointer-events-none"
             />
 

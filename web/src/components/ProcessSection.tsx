@@ -13,7 +13,7 @@ const ProcessSection = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
   };
 
   return (
@@ -42,7 +42,7 @@ const ProcessSection = () => {
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 1, delay: 0.5, ease: "easeInOut" }}
+          transition={{ duration: 1, delay: 0.5, ease: "easeInOut" as const }}
           className="hidden md:block absolute top-16 left-1/4 right-1/4 h-[1px] bg-neutral-800 z-0 origin-left"
         />
 

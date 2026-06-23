@@ -14,7 +14,7 @@ const HeroSection = () => {
   const [currentImage, setCurrentImage] = useState(alanOpen);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
 
     const blink = () => {
       setCurrentImage(alanClose); // cerrar ojos
@@ -39,20 +39,20 @@ const HeroSection = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
   };
 
   const floatAnimation = {
     animate: {
       y: [0, -15, 0],
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const },
     },
   };
 
   const floatAnimationTwo = {
     animate: {
       y: [0, 15, 0],
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const },
     },
   };
 
@@ -110,7 +110,7 @@ const HeroSection = () => {
               <motion.span
                 initial={{ width: 0 }}
                 animate={{ width: "100%" }}
-                transition={{ duration: 1, delay: 1.5, ease: "easeInOut" }}
+                transition={{ duration: 1, delay: 1.5, ease: "easeInOut" as const }}
                 className="absolute bottom-1 left-0 h-1 bg-brand-gold/60 -z-10"
               />
             </span>
