@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { PhoneCall, Code2, Rocket } from 'lucide-react';
 
 const ProcessSection = () => {
   const containerVariants = {
@@ -51,8 +52,13 @@ const ProcessSection = () => {
           whileHover={{ scale: 1.05, y: -10 }}
           className="bg-brand-dark p-8 rounded-3xl border border-brand-violet/20 space-y-4 relative z-10 transition-colors hover:border-brand-violet_glossy hover:shadow-[0_0_30px_rgba(110,86,207,0.15)]"
         >
-          <div className="w-12 h-12 glossy-violet text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
-            01
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 glossy-violet text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
+              01
+            </div>
+            <div className="text-brand-violet_glossy p-2 bg-brand-violet/10 rounded-xl">
+              <PhoneCall className="w-5 h-5" />
+            </div>
           </div>
           <h3 className="text-lg font-bold font-outfit text-white">1. Diagnóstico de 15 min</h3>
           <p className="text-neutral-400 text-sm leading-relaxed">
@@ -67,8 +73,13 @@ const ProcessSection = () => {
           whileHover={{ scale: 1.05, y: -10 }}
           className="bg-brand-dark p-8 rounded-3xl border border-brand-violet/20 space-y-4 relative z-10 transition-colors hover:border-brand-violet_glossy hover:shadow-[0_0_30px_rgba(110,86,207,0.15)]"
         >
-          <div className="w-12 h-12 bg-neutral-900 border border-neutral-700 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
-            02
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-neutral-900 border border-neutral-700 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
+              02
+            </div>
+            <div className="text-brand-gold p-2 bg-brand-gold/10 rounded-xl">
+              <Code2 className="w-5 h-5" />
+            </div>
           </div>
           <h3 className="text-lg font-bold font-outfit text-white">2. Desarrollo Directo</h3>
           <p className="text-neutral-400 text-sm leading-relaxed">
@@ -82,8 +93,13 @@ const ProcessSection = () => {
           whileHover={{ scale: 1.05, y: -10 }}
           className="bg-brand-dark p-8 rounded-3xl border border-brand-violet/20 space-y-4 relative z-10 transition-colors hover:border-brand-violet_glossy hover:shadow-[0_0_30px_rgba(110,86,207,0.15)]"
         >
-          <div className="w-12 h-12 bg-neutral-900 border border-neutral-700 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
-            03
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-neutral-900 border border-neutral-700 text-white font-extrabold text-lg rounded-2xl flex items-center justify-center font-outfit">
+              03
+            </div>
+            <div className="text-[#25D366] p-2 bg-[#25D366]/10 rounded-xl">
+              <Rocket className="w-5 h-5" />
+            </div>
           </div>
           <h3 className="text-lg font-bold font-outfit text-white">3. Lanzamiento y Entrega</h3>
           <p className="text-neutral-400 text-sm leading-relaxed">

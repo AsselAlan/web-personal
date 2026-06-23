@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { CheckCircle2, MonitorSmartphone } from 'lucide-react';
 import SurveyModal from './SurveyModal';
+
+import keyboardImage from '../assets/hero/teclado.png';
+import alanOpen from '../assets/hero/perfil-ojos-open.png';
+import alanClose from '../assets/hero/perfil-ojos-close.png';
+import laptopImage from '../assets/hero/laptop.png';
+import tabletImage from '../assets/hero/tablet.png';
 
 const HeroSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState(alanOpen);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    const blink = () => {
+      setCurrentImage(alanClose); // cerrar ojos
+      timeout = setTimeout(() => {
+        setCurrentImage(alanOpen); // abrir ojos
+        timeout = setTimeout(blink, 3000); // siguiente parpadeo
+      }, 500); // mantener cerrados 0.5s
+    };
+
+    timeout = setTimeout(blink, 2000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.15, delayChildren: 0.2 }
     }
@@ -18,37 +42,56 @@ const HeroSection = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
   };
 
+  const floatAnimation = {
+    animate: {
+      y: [0, -15, 0],
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+    },
+  };
+
+  const floatAnimationTwo = {
+    animate: {
+      y: [0, 15, 0],
+      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+    },
+  };
+
   return (
-    <section className="relative pt-12 pb-20 md:py-24 overflow-hidden border-b border-brand-dark/50 bg-brand-darker">
-      {/* Fondo animado dinámico */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.15, 0.25, 0.15],
-            x: [0, 40, 0],
-            y: [0, -30, 0]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 right-0 w-[500px] h-[500px] bg-brand-violet rounded-full blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.4, 1],
-            opacity: [0.08, 0.15, 0.08],
-            x: [0, -50, 0],
-            y: [0, 40, 0]
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-1/2 -left-20 w-[600px] h-[600px] bg-brand-gold rounded-full blur-[150px]" 
+    <section className="relative min-h-[100vh] w-full bg-black text-white flex items-center justify-center overflow-hidden border-b border-brand-dark/50">
+
+      {/* Central Animated Image */}
+      <div className="absolute z-[1] left-1/2 lg:left-[65%] -translate-x-1/2 md:top-auto bg-black rounded-[50%/45%] pointer-events-none mt-20 lg:mt-0">
+        <img
+          src={currentImage}
+          alt="Alan avatar"
+          className="w-[280px] h-[380px] md:w-[360px] md:h-[480px] object-cover rounded-[50%/45%] grayscale-[0.2] opacity-75 shadow-[0_0_150px_20px_rgba(255,255,255,0.1)] transition-all duration-200"
         />
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+      {/* Floating Decorations */}
+      <motion.img
+        src={keyboardImage}
+        alt="Teclado"
+        className="absolute top-[-5%] lg:top-[-15%] right-[-10%] lg:right-[40%] w-[250px] lg:w-[400px] z-0 opacity-80 pointer-events-none"
+        {...floatAnimationTwo}
+      />
+      <motion.img
+        src={laptopImage}
+        alt="Laptop"
+        className="absolute bottom-[5%] lg:bottom-[10%] left-[-20%] lg:left-[-5%] w-[300px] lg:w-[450px] z-0 opacity-80 pointer-events-none -rotate-6"
+        {...floatAnimation}
+      />
+      <motion.img
+        src={tabletImage}
+        alt="Tablet"
+        className="absolute bottom-[40%] lg:bottom-[15%] right-[-10%] lg:right-[5%] w-[250px] lg:w-[350px] z-0 opacity-80 pointer-events-none"
+        {...floatAnimation}
+      />
 
-        {/* Copywriter e Intro de Valor */}
-        <motion.div 
-          className="lg:col-span-7 space-y-6"
+      {/* Floating Text Overlay (Original Text, New Positioning) */}
+      <div className="relative z-10 w-full h-full max-w-6xl mx-auto flex items-end lg:items-center pb-20 lg:pb-0 px-6 pt-96 lg:pt-0">
+        <motion.div
+          className="flex flex-col items-start gap-5 text-left max-w-2xl mt-48 md:mt-64 lg:mt-0 bg-black/60 lg:bg-transparent p-6 lg:p-0 rounded-3xl backdrop-blur-md lg:backdrop-blur-none border border-white/5 lg:border-none"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -61,10 +104,10 @@ const HeroSection = () => {
             Propuesta de valor para Pymes y Comercios
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-4xl md:text-5xl font-outfit font-extrabold text-white leading-tight tracking-tight">
+          <motion.h1 variants={itemVariants} className="text-3xl md:text-5xl font-outfit font-extrabold text-white leading-tight tracking-tight [transform:perspective(300px)_translateZ(5px)] drop-shadow-2xl">
             Transfiere cualquier flujo de tu empresa a un software propio con <span className="text-brand-gold relative inline-block">
               control total.
-              <motion.span 
+              <motion.span
                 initial={{ width: 0 }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 1, delay: 1.5, ease: "easeInOut" }}
@@ -73,63 +116,44 @@ const HeroSection = () => {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-base md:text-lg text-neutral-400 leading-relaxed max-w-2xl">
+          <motion.p variants={itemVariants} className="text-sm md:text-lg text-neutral-300 leading-relaxed max-w-xl font-light">
             La ventaja de tener un software 100% adaptado a tu negocio es que tú dictas las reglas. Sin opciones genéricas que ralentizan a tu equipo, y con la posibilidad real de escalarlo y adaptarlo a medida que tu empresa crece.
           </motion.p>
 
           {/* Highlights Rápidos */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-sm text-neutral-300 pt-2">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs md:text-sm text-neutral-300 pt-2 w-full">
             {[
               { text: "100% Adaptado a tus flujos diarios" },
               { text: "Evoluciona junto al crecimiento de tu empresa" },
               { text: "Control total y privacidad de tus datos" },
-              { text: "Sin límites ni restricciones de sistemas de terceros" }
+              { text: "Sin límites ni restricciones de terceros" }
             ].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-2.5">
-                <svg className="w-5 h-5 text-brand-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+              <div key={idx} className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-brand-gold shrink-0" />
                 <span>{item.text}</span>
               </div>
             ))}
           </motion.div>
 
           {/* Botones de Acción directos */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
-            <a href="https://wa.me/5491123456789" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-extrabold px-6 py-4 rounded-3xl rounded-br-sm shadow-xl shadow-[#25D366]/20 transition-all hover:-translate-y-1">
-              <img src="/whatsapp-svgrepo-com.svg" alt="WhatsApp" className="w-8 h-8" />
-              Consultar ahora
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4 w-full">
+            <a 
+              href="https://wa.me/5492223674061?text=Hola!%20Vengo%20de%20la%20web.%20Me%20gustaría%20consultar%20por%20un%20software%20a%20medida." 
+              target="_blank" 
+              rel="noreferrer" 
+              className="relative overflow-hidden group/btn inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white font-extrabold px-6 py-4 rounded-3xl rounded-br-sm shadow-[0_0_20px_rgba(37,211,102,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(37,211,102,0.5)] w-full sm:w-auto"
+            >
+              {/* Shine effect */}
+              <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+              
+              <img src="/whatsapp-svgrepo-com.svg" alt="WhatsApp" className="w-6 h-6 md:w-8 md:h-8 relative z-10" />
+              <span className="relative z-10">Consultar ahora</span>
             </a>
-            <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center justify-center gap-2 glossy-violet text-white font-semibold px-6 py-4 rounded-2xl shadow-sm transition-all hover:-translate-y-1">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+            <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center justify-center gap-2 glossy-violet text-white font-semibold px-6 py-4 rounded-2xl shadow-sm transition-all hover:scale-105 w-full sm:w-auto">
+              <MonitorSmartphone className="w-5 h-5" />
               Necesito mi app
             </button>
           </motion.div>
-        </motion.div>
-
-        {/* Rostro y Credibilidad */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-          className="lg:col-span-5 flex flex-col items-center relative"
-        >
-          {/* Círculo decorativo rotativo detrás */}
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full border border-brand-violet/30 border-dashed z-0 hidden md:block"
-          />
-          
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="relative w-64 h-80 md:w-80 md:h-96 rounded-3xl overflow-hidden bg-brand-dark shadow-2xl shadow-brand-gold/20 border-2 border-brand-gold/50 z-10"
-          >
-            <img src="/perfil.jpg" alt="Alan Assel" className="w-full h-full object-cover scale-110 object-medium" />
-          </motion.div>
-          <div className="mt-6 text-center z-10">
-            <span className="font-outfit font-bold text-white text-xl block tracking-wide">Alan Assel</span>
-            <span className="text-sm font-semibold text-brand-gold tracking-widest uppercase">Especialista en Automatización</span>
-          </div>
         </motion.div>
       </div>
 

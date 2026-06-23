@@ -3,8 +3,8 @@ import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import ProblemSection from './components/ProblemSection';
 import SolutionSection from './components/SolutionSection';
+import AppTypesSection from './components/AppTypesSection';
 import CaseStudySection from './components/CaseStudySection';
-import ProcessSection from './components/ProcessSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 
@@ -16,8 +16,8 @@ function App() {
         <HeroSection />
         <ProblemSection />
         <SolutionSection />
+        <AppTypesSection />
         <CaseStudySection />
-        <ProcessSection />
         <ContactSection />
       </main>
       <Footer />
