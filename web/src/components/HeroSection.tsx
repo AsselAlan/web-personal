@@ -60,7 +60,7 @@ const HeroSection = () => {
     <section className="relative min-h-[100vh] w-full bg-black text-white flex items-center justify-center overflow-hidden border-b border-brand-dark/50">
 
       {/* Central Animated Image */}
-      <div className="absolute z-[1] left-1/2 lg:left-[65%] -translate-x-1/2 md:top-auto bg-black rounded-[50%/45%] pointer-events-none mt-20 lg:mt-0">
+      <div className="absolute z-[1] top-0 left-0 -translate-x-[45%] md:-translate-x-[40%] lg:top-auto lg:left-[65%] lg:-translate-x-1/2 bg-black rounded-[50%/45%] pointer-events-none mt-10 md:mt-16 lg:mt-0">
         <img
           src={currentImage}
           alt="Alan avatar"
@@ -84,14 +84,14 @@ const HeroSection = () => {
       <motion.img
         src={tabletImage}
         alt="Tablet"
-        className="absolute bottom-[40%] lg:bottom-[15%] right-[-10%] lg:right-[5%] w-[250px] lg:w-[350px] z-0 opacity-80 pointer-events-none"
+        className="absolute top-[18%] md:top-[25%] lg:top-auto lg:bottom-[15%] right-[-5%] lg:right-[5%] w-[180px] md:w-[250px] lg:w-[350px] z-0 opacity-90 lg:opacity-80 pointer-events-none"
         {...floatAnimation}
       />
 
       {/* Floating Text Overlay (Original Text, New Positioning) */}
-      <div className="relative z-10 w-full h-full max-w-6xl mx-auto flex items-end lg:items-center pb-20 lg:pb-0 px-6 pt-96 lg:pt-0">
+      <div className="relative z-10 w-full h-full max-w-6xl mx-auto flex items-end lg:items-center pb-20 lg:pb-0 px-6 pt-[380px] md:pt-[440px] lg:pt-0">
         <motion.div
-          className="flex flex-col items-start gap-5 text-left max-w-2xl mt-48 md:mt-64 lg:mt-0 bg-black/60 lg:bg-transparent p-6 lg:p-0 rounded-3xl backdrop-blur-md lg:backdrop-blur-none border border-white/5 lg:border-none"
+          className="flex flex-col items-start gap-5 text-left max-w-2xl mt-10 lg:mt-0 bg-black/30 lg:bg-transparent p-6 lg:p-0 rounded-3xl backdrop-blur-sm lg:backdrop-blur-none border border-white/5 lg:border-none"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
